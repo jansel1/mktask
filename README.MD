@@ -13,11 +13,12 @@ is not really used.
 **Context menu**
 To enter, right click on the coding section. Upon clicking, you will be greeted with all of our commands. Which include:
 * Run file (CTRL+R) Runs script
-* Run here (CTR+Z) Runs script inside MkTask(Not recommended - may crash)
+* Run here (CTR+H) Runs script inside MkTask(Not recommended - may crash)
 * Open file (CTRL+O) Open a file and edit, run, and view its content
 * Open script location (CTRL+F) Opens the directory in which the default code is stored.
 * Add to startup (CTRL+M) Adds current script to startup
 * View startup tasks (ALT+T) Shows all startups tasks
+* Go back (CTRL+Z) (Broken for now... FUCK)
 
 Misc
 

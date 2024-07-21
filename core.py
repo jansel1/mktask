@@ -92,7 +92,10 @@ class MKTask:
         self.window = tk.Tk()
         self.style = ttk.Style()
         self.scriptloc = f".\\Scripts\\Code.bat"
-        
+
+        self.timeline = []
+        self.timeline_current_index = 0
+
         self.style.theme_use('classic')
 
         style = self.style
@@ -317,12 +320,15 @@ class MKTask:
     def save_proj(self, input):
         with open(self.scriptloc, 'w') as f:
             f.write(self.parse(input))
+
     def get_name(self, input):
         self.project_name = self._proj_name.get()
         self._proj_name.configure(fg="#5b9c49")
 
         if self.project_name == "":
-            self.scriptloc = "Scripts/Code.bat"
+            self.scriptloc = ".\\Scripts\\Code.bat"
+            self.save_proj(input)
+
             self.window.title("MKTask")
         else:
             project_dir = f".\\Scripts\\{self.project_name}"
@@ -345,7 +351,7 @@ class MKTask:
 
             else:
                 self.scriptloc = f"{project_dir}\\Code.bat"
-                
+
                 self.save_proj(input)
                 self.window.title(f"MKTask - {self.project_name} - {os.path.abspath(self.scriptloc)}")
 
@@ -354,6 +360,27 @@ class MKTask:
             if not self.project_name == self._proj_name.get():
                 self._proj_name.configure(fg="#bababa")
         except: pass
+
+    def go_back(self, input):
+        if self.timeline_current_index > 0:
+            self.timeline_current_index -= 1
+
+            input.delete(1.0, tk.END)
+            input.insert(1.0, self.timeline[self.timeline_current_index])
+            input.highlight_all()
+
+    def update_timeline(self, input):
+        current_text = input.get(1.0, tk.END).strip()
+
+        if current_text:
+            self.timeline.append(current_text)
+            self.timeline_current_index += 1
+
+            print(self.timeline)
+
+    def timeline_main(self, event):
+        if not (event.state == 0x4 ):
+            self.update_timeline(self._input)
 
     def Core(self):
         if not os.path.exists(startup): 
@@ -365,7 +392,9 @@ class MKTask:
         mainframe = tk.Frame(window, bg="#282a36")
         mainframe.pack(fill="x")
 
-        _input = CodeView(mainframe,  bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
+        self._input = _input = CodeView(mainframe,  bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
+        _input = self._input
+
         _input.insert(1.0, "rem\t\tWrite, view, and run Batch scripts.\nrem\t\tTo run, press Ctrl+R!\n\necho Hello, world!")
         _input.highlight_all()
 
@@ -379,7 +408,7 @@ class MKTask:
         self.context_tasks = tk.Menu(self.context_menu, tearoff=0)
 
         self.context_runs.add_command(label="Run (CTRL+R)", command=lambda: self.runcmd(_input))
-        self.context_runs.add_command(label="Run in MkTask (CTRL+Z)", command=lambda: self.run(_input))
+        self.context_runs.add_command(label="Run in MkTask (CTRL+H)", command=lambda: self.run(_input))
         self.context_menu.add_cascade(label="Run", menu=self.context_runs)
 
         self.context_actions.add_command(label="Copy all (CTRL+X)", command=lambda: self.copy(_input))
@@ -429,6 +458,7 @@ class MKTask:
 
         _input.focus()
 
+    
         _input.bind("<Return>", lambda x: self.auto_indent(input=_input))
         _input.bind('<KeyPress>', lambda x: self.update_status_bar(_input))
         _input.bind('<KeyRelease>', lambda x: self.save_proj(_input))
@@ -436,13 +466,17 @@ class MKTask:
 
         self.out_text.bind("<Button-3>", self.show_context_menu_out)
 
+        self.update_timeline(_input)
+
+        window.bind('<Control-z>', lambda x: self.go_back(_input))
+        window.bind('<KeyRelease>', self.timeline_main)
         window.bind('<Alt-t>', lambda x: self.view_startups())
         window.bind('<Control-s>', lambda x: self.save_file(_input))
         window.bind('<Control-m>', lambda x: self.add_to_startup(_input))
         window.bind('<Control-f>', lambda x: os.system("explorer .\\Scripts\\"))
         window.bind('<Control-o>', lambda x: self.copy_from_file(_input))
         window.bind('<Control-b>', lambda x: self.clear(_input))
-        window.bind('<Control-z>', lambda x: self.run(_input))
+        window.bind('<Control-h>', lambda x: self.run(_input))
         window.bind('<Control-r>', lambda x: self.runcmd(_input))
         window.bind('<Control-x>', lambda x: self.copy(_input))
 
