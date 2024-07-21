@@ -64,7 +64,6 @@ class MKTask:
     def __init__(self):
         run_as_admin()
 
-
         self.window = tk.Tk()
         self.style = ttk.Style()
         self.scriptloc = f".\\Scripts\\Code.bat"
@@ -200,12 +199,14 @@ class MKTask:
                 content = file.read()
             
             return content
+        else: return 69420 # nice
 
     def copy_from_file(self, input):
-        input.delete(1.0, tk.END)
-        
         file_data = self.open_file()
-        input.insert(1.0, file_data)
+
+        if not file_data == 69420:
+            input.delete(1.0, tk.END)
+            input.insert(1.0, file_data)
     
     def update_status_bar(self, input):
         content = input.get(1.0, tk.END)
@@ -259,6 +260,33 @@ class MKTask:
 
             f.write(txt)
 
+    def view_startups(self): os.system(f"explorer.exe {startup}")
+
+    def save_file(self, input):
+        noauto = False
+
+        txt = ""
+
+        if "noauto" in str(input.get(1.0, tk.END)): 
+            noauto = True
+
+
+        if _ECHO_OFF == True and not noauto: txt += "\n@echo off\n"
+
+        txt += str(input.get(1.0, tk.END))
+
+        if _AUTO_PAUSE == True and not noauto: txt += "\npause\n"
+        txt = txt.replace("noauto", "")
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Batch file", "*.bat"), ("All files", "*.*")]
+        )
+        
+        if file_path:
+            with open(file_path, 'w') as file:
+                file.write(txt)
+
     def Core(self):
         if not os.path.exists(startup): 
             self.can_make_task = False
@@ -266,18 +294,21 @@ class MKTask:
 
         window = self.window
 
-        mainframe = tk.Frame(window)
+        mainframe = tk.Frame(window, bg="#282a36")
         mainframe.pack(fill="x")
 
         _input = CodeView(mainframe,  bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
         _input.insert(1.0, "rem Write, view, and run Batch scripts.\nrem To run, press Ctrl+R!\n\necho Hello, world!")
         _input.highlight_all()
 
+        _input.pack(pady=5)
+
         self.context_menu = tk.Menu(window, tearoff=0, borderwidth=0, relief='flat', activebackground="black")
 
         self.context_runs = tk.Menu(self.context_menu, tearoff=0)
         self.context_actions = tk.Menu(self.context_menu, tearoff=0)
         self.context_files = tk.Menu(self.context_menu, tearoff=0)
+        self.context_tasks = tk.Menu(self.context_menu, tearoff=0)
 
         self.context_runs.add_command(label="Run (CTRL+R)", command=lambda: self.runcmd(_input))
         self.context_runs.add_command(label="Run in MkTask (CTRL+Z)", command=lambda: self.run(_input))
@@ -288,14 +319,14 @@ class MKTask:
         self.context_menu.add_cascade(label="Actions", menu=self.context_actions)
 
         self.context_files.add_command(label="Open from file (CTRL+O)", command=lambda: self.copy_from_file(_input))
-        self.context_files.add_command(label="Open code location (CTRL+F)", command=lambda: os.system("explorer .\\Scripts\\"))
-        
-        self.context_tasks = tk.Menu(self.context_files, tearoff=0)
-        self.context_tasks.add_command(label="Add to startup", command=lambda: self.add_to_startup(input))
-        
+        self.context_files.add_command(label="Open script location (CTRL+F)", command=lambda: os.system("explorer .\\Scripts\\"))
+        self.context_files.add_command(label="Save file (CTRL+S)", command=lambda: self.save_file(_input))
+
+        self.context_tasks.add_command(label="Add to startup (CTRL+M)", command=lambda: self.add_to_startup(_input))
+        self.context_tasks.add_command(label="View startups (ALT+T)", command=self.view_startups)
 
         self.context_menu.add_cascade(label="File", menu=self.context_files)
-        self.context_files.add_cascade(label="Tasks", menu=self.context_tasks)
+        self.context_menu.add_cascade(label="Tasks", menu=self.context_tasks)
 
         _input.pack(fill="both")
 
@@ -328,6 +359,10 @@ class MKTask:
 
         self.out_text.bind("<Button-3>", self.show_context_menu_out)
 
+        
+        window.bind('<Alt-t>', lambda x: self.view_startups())
+        window.bind('<Control-s>', lambda x: self.save_file(_input))
+        window.bind('<Control-m>', lambda x: self.add_to_startup(_input))
         window.bind('<Control-f>', lambda x: os.system("explorer .\\Scripts\\"))
         window.bind('<Control-o>', lambda x: self.copy_from_file(_input))
         window.bind('<Control-b>', lambda x: self.clear(_input))
