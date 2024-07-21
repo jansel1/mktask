@@ -122,7 +122,10 @@ class BatchLexer(RegexLexer):
                     "exit",         # Exit the command interpreter
                     "$noauto",       # Noauto (custom)
                     "title",
-                    "$error"         # Custom provides exit codes (1, 0)
+                    "$error",        # Custom provides exit codes (1, 0)
+                    "python",
+                    "pip",
+                    "python3"
                 ),
                    suffix=_keyword_terminator), Keyword, f'follow{suffix}'),
             (rf'(call)({_space}?)(:)',

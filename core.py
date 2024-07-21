@@ -93,7 +93,9 @@ class MKTask:
         self.style = ttk.Style()
         self.scriptloc = f".\\Scripts\\Code.bat"
 
-        self.timeline = []
+        self.undo_stack = []
+        self.redo_stack = []
+
         self.timeline_current_index = 0
 
         self.style.theme_use('classic')
@@ -361,26 +363,24 @@ class MKTask:
                 self._proj_name.configure(fg="#bababa")
         except: pass
 
-    def go_back(self, input):
-        if self.timeline_current_index > 0:
-            self.timeline_current_index -= 1
+    def undo(self, event=None):
+        if self.undo_stack:
+            text = self.undo_stack.pop()
+            self.redo_stack.append(self._input.get(1.0, tk.END))
+            self._input.delete(1.0, tk.END)
+            self._input.insert(1.0, text)
 
-            input.delete(1.0, tk.END)
-            input.insert(1.0, self.timeline[self.timeline_current_index])
-            input.highlight_all()
+    def redo(self, event=None):
+        if self.redo_stack:
+            text = self.redo_stack.pop()
+            self.undo_stack.append(self._input.get(1.0, tk.END))
+            self._input.delete(1.0, tk.END)
+            self._input.insert(1.0, text)
 
-    def update_timeline(self, input):
-        current_text = input.get(1.0, tk.END).strip()
-
-        if current_text:
-            self.timeline.append(current_text)
-            self.timeline_current_index += 1
-
-            print(self.timeline)
-
-    def timeline_main(self, event):
-        if not (event.state == 0x4 ):
-            self.update_timeline(self._input)
+    def timeline(self, event):
+      if event.keysym not in ["Control_Z", "Control_Y", "z", "y"]:
+         self.undo_stack.append(self._input.get(1.0, tk.END))
+         self.redo_stack.clear()
 
     def Core(self):
         if not os.path.exists(startup): 
@@ -401,7 +401,7 @@ class MKTask:
         _input.pack(pady=5)
 
         self.context_menu = tk.Menu(window, tearoff=0, borderwidth=0, relief='flat', activebackground="black")
-
+        
         self.context_runs = tk.Menu(self.context_menu, tearoff=0)
         self.context_actions = tk.Menu(self.context_menu, tearoff=0)
         self.context_files = tk.Menu(self.context_menu, tearoff=0)
@@ -466,10 +466,9 @@ class MKTask:
 
         self.out_text.bind("<Button-3>", self.show_context_menu_out)
 
-        self.update_timeline(_input)
-
-        window.bind('<Control-z>', lambda x: self.go_back(_input))
-        window.bind('<KeyRelease>', self.timeline_main)
+        window.bind('<Control-y>', self.redo)
+        window.bind('<Control-z>', self.undo)
+        window.bind('<Key>', self.timeline)
         window.bind('<Alt-t>', lambda x: self.view_startups())
         window.bind('<Control-s>', lambda x: self.save_file(_input))
         window.bind('<Control-m>', lambda x: self.add_to_startup(_input))
