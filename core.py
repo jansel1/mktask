@@ -1,18 +1,55 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+from tkinter import messagebox, simpledialog
 
 from subprocess import Popen, PIPE
 import os, random
 
 import pygments.lexer
 import pygments.lexers
-from chlorophyll import CodeView
+
 import pygments.lexers.shell
 
 import pyperclip, time, re
-import keyboard, threading
+import keyboard, threading, json
 
+import chlorophyll
+from chlorophyll import CodeView
+
+import syntax
+import pyuac
+
+_ECHO_OFF = None
+_AUTO_PAUSE = None
+
+json_data = None
+current_dir = None
+
+current_dir = os.chdir(os.getcwd())
+startup = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
+
+if not os.path.exists(".\\Scripts"): os.mkdir("Scripts")
+if not os.path.exists(".\\Scripts\\Code.bat"): 
+    with open("./Scripts/Code.bat", "w") as f: f.write("")
+
+if not os.path.exists(".\\User"): os.mkdir("User")
+if not os.path.exists(".\\User\\cfg.json"): 
+    with open("./User/cfg.json", "w") as f: f.write("""
+{
+    "auto_echo_off": true,
+    "auto_pause": true
+}
+""")
+
+with open("./User/cfg.json", 'r') as cfg:
+    data = cfg.read()
+    data_j = json.loads(data)
+
+    json_data = data_j
+
+    if (data_j["auto_echo_off"] == True): _ECHO_OFF = True
+    if (data_j["auto_pause"] == True): _AUTO_PAUSE = True
 
 class MKTask:
     def __init__(self):
@@ -20,8 +57,15 @@ class MKTask:
         self.style = ttk.Style()
         self.scriptloc = f".\\Scripts\\Code.bat"
 
+        if not pyuac.isUserAdmin() and self.window.winfo_exists: 
+            pyuac.runAsAdmin()
+        
+        self.style.theme_use('classic')
+
         style = self.style
         window = self.window
+
+        self.can_make_task = True
 
         try:
             try:
@@ -40,17 +84,26 @@ class MKTask:
 
         window.minsize(250, 250)
 
-    def run(self, input):
+    def error(self, errorText, title="Error"):
+        root = self.window
+
+        root.withdraw()  # Hide the root window initially
+
+        messagebox.showerror(title, errorText)
+        
+        root.deiconify()
+
+    def run(self, input): # dont use
         self.out_text.delete(1.0, tk.END)
 
-        txt = "@echo off\n" # Turns this off if you want echo on
+        if _ECHO_OFF: txt = "\n@echo off\n"
 
         txt += input.get(1.0, tk.END)
 
         with open(self.scriptloc, "w") as f:
             f.write(txt)
 
-        if "pause" in txt: self.out_text.insert(1.0, "UNSUPPORTED COMMAND: pause: This command WILL crash MkTask. "); return
+        if _AUTO_PAUSE: txt += "\npause\n"
 
         if txt == None: txt = ""
 
@@ -80,7 +133,22 @@ class MKTask:
     
     def runcmd(self, input):
         with open(self.scriptloc, "w") as f:
-            f.write("@echo off\n" + str(input.get(1.0, tk.END)) + "\npause")
+            txt = ""
+            noauto = False
+
+            if "noauto" in str(input.get(1.0, tk.END)): 
+                noauto = True
+
+
+            if _ECHO_OFF == True and not noauto: txt += "\n@echo off\n"
+
+            txt += str(input.get(1.0, tk.END))
+
+            if _AUTO_PAUSE == True and not noauto: txt += "\npause\n"
+            txt = txt.replace("noauto", "")
+
+            f.write(txt)
+
 
         proc = Popen(
             f"explorer.exe {self.scriptloc}",
@@ -103,6 +171,9 @@ class MKTask:
 
     def show_context_menu(self, event):
         self.context_menu.tk_popup(event.x_root, event.y_root)
+
+    def show_context_menu_out(self, event):
+        self.context_menu_out.tk_popup(event.x_root, event.y_root)
 
     def open_file(self):
         file_path = filedialog.askopenfilename(
@@ -144,28 +215,73 @@ class MKTask:
         input.insert("insert", f"\n{whitespace}")
 
         return "break"
+
+    def msg_prompt(self, text, title_="Question"):
+        user_input = simpledialog.askstring(title_, text)
+
+        return user_input
     
+    def add_to_startup(self, input):
+        n=self.msg_prompt("What would you like to name this task?", title_="Task Name")
+
+        if n is None:
+            return
+        
+        with open(f"{startup}\\{n}", 'w') as f:
+            txt = ""
+            noauto = False
+
+            if "noauto" in str(input.get(1.0, tk.END)): 
+                noauto = True
+
+
+            if _ECHO_OFF == True and not noauto: txt += "\n@echo off\n"
+
+            txt += str(input.get(1.0, tk.END))
+
+            if _AUTO_PAUSE == True and not noauto: txt += "\npause\n"
+            txt = txt.replace("noauto", "")
+
+            f.write(txt)
+
     def Core(self):
+        if not os.path.exists(startup): 
+            self.can_make_task = False
+            self.error(f"MkTask - Missing startup folder\n\nCannot find windows startup folder. You won't be able to make tasks.\n\nFolder should be located in: \n\n`{startup}` ")
+
         window = self.window
 
         mainframe = tk.Frame(window)
         mainframe.pack(fill="x")
 
-        _input = CodeView(mainframe, bg="#1f1f1f", fg="#ffffff", height=30, lexer=pygments.lexers.shell.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
-        
+        _input = CodeView(mainframe,  bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
+        _input.insert(1.0, "rem Write, view, and run Batch scripts.\nrem To run, press Ctrl+R!\n\necho Hello, world!")
+        _input.highlight_all()
+
         self.context_menu = tk.Menu(window, tearoff=0, borderwidth=0, relief='flat', activebackground="black")
 
-        self.context_menu.add_command(label="RUN IN CMD", command=lambda: self.runcmd(_input))
-        self.context_menu.add_command(label="RUN HERE", command=lambda: self.run(_input))
-        self.context_menu.add_separator()
+        self.context_runs = tk.Menu(self.context_menu, tearoff=0)
+        self.context_actions = tk.Menu(self.context_menu, tearoff=0)
+        self.context_files = tk.Menu(self.context_menu, tearoff=0)
 
-        self.context_menu.add_command(label="Copy all", command=lambda: self.copy(_input))
-        self.context_menu.add_command(label="Clear all", command=lambda: self.clear(_input))
-        self.context_menu.add_separator()
+        self.context_runs.add_command(label="Run (CTRL+R)", command=lambda: self.runcmd(_input))
+        self.context_runs.add_command(label="Run in MkTask (CTRL+Z)", command=lambda: self.run(_input))
+        self.context_menu.add_cascade(label="Run", menu=self.context_runs)
 
-        self.context_menu.add_command(label="Open from file", command=lambda: self.copy_from_file(_input))
-        self.context_menu.add_command(label="Open code location", command=lambda: os.system("explorer .\\Scripts\\"))
+        self.context_actions.add_command(label="Copy all (CTRL+X)", command=lambda: self.copy(_input))
+        self.context_actions.add_command(label="Clear all (CTRL+B)", command=lambda: self.clear(_input))
+        self.context_menu.add_cascade(label="Actions", menu=self.context_actions)
+
+        self.context_files.add_command(label="Open from file (CTRL+O)", command=lambda: self.copy_from_file(_input))
+        self.context_files.add_command(label="Open code location (CTRL+F)", command=lambda: os.system("explorer .\\Scripts\\"))
         
+        self.context_tasks = tk.Menu(self.context_files, tearoff=0)
+        self.context_tasks.add_command(label="Add to startup", command=lambda: self.add_to_startup(input))
+        
+
+        self.context_menu.add_cascade(label="File", menu=self.context_files)
+        self.context_files.add_cascade(label="Tasks", menu=self.context_tasks)
+
         _input.pack(fill="both")
 
         _data = tk.Frame(window, bg="#212126")
@@ -176,6 +292,10 @@ class MKTask:
 
         self._output = tk.Frame(window, bg="#1f1f1f")
         self._output.pack(fill="both", expand=True)
+
+        self.context_menu_out = tk.Menu(window, tearoff=0, borderwidth=0, relief='flat', activebackground="black")
+        self.context_menu_out.add_command(label="Clear", command= self.clearc)
+        self.context_menu_out.add_command(label="Copy all", command=lambda: self.copy(self.out_text))
 
         scrollb_out = tk.Scrollbar(self._output, orient='vertical')
         scrollb_out.pack(side=tk.RIGHT, fill="y")
@@ -191,6 +311,11 @@ class MKTask:
         _input.bind('<KeyPress>', lambda x: self.update_status_bar(_input))
         _input.bind("<Button-3>", self.show_context_menu)
 
+        self.out_text.bind("<Button-3>", self.show_context_menu_out)
+
+        window.bind('<Control-f>', lambda x: os.system("explorer .\\Scripts\\"))
+        window.bind('<Control-o>', lambda x: self.copy_from_file(_input))
+        window.bind('<Control-b>', lambda x: self.clear(_input))
         window.bind('<Control-z>', lambda x: self.run(_input))
         window.bind('<Control-r>', lambda x: self.runcmd(_input))
         window.bind('<Control-x>', lambda x: self.copy(_input))
