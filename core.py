@@ -475,7 +475,7 @@ class MKTask:
         window.bind('<Control-f>', lambda x: os.system("explorer .\\Scripts\\"))
         window.bind('<Control-o>', lambda x: self.copy_from_file(_input))
         window.bind('<Control-b>', lambda x: self.clear(_input))
-        window.bind('<Control-h>', lambda x: self.run(_input))
+        window.bind('<Alt-r>', lambda x: self.run(_input))
         window.bind('<Control-r>', lambda x: self.runcmd(_input))
         window.bind('<Control-x>', lambda x: self.copy(_input))
 
