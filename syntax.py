@@ -120,8 +120,9 @@ class BatchLexer(RegexLexer):
                     "ver",          # Display the Windows version
                     "vol",          # Display a disk volume label and serial number
                     "exit",         # Exit the command interpreter
-                    "noauto",       # Noauto (custom)
-                    "title"
+                    "$noauto",       # Noauto (custom)
+                    "title",
+                    "$error"         # Custom provides exit codes (1, 0)
                 ),
                    suffix=_keyword_terminator), Keyword, f'follow{suffix}'),
             (rf'(call)({_space}?)(:)',

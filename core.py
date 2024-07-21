@@ -38,7 +38,7 @@ if not os.path.exists(".\\User\\cfg.json"):
     with open("./User/cfg.json", "w") as f: f.write("""
 {
     "auto_echo_off": true,
-    "auto_pause": true
+    "auto_pause": true,
 }
 """)
 
@@ -59,6 +59,31 @@ with open("./User/cfg.json", 'r') as cfg:
 
     if (data_j["auto_echo_off"] == True): _ECHO_OFF = True
     if (data_j["auto_pause"] == True): _AUTO_PAUSE = True
+
+
+
+class PlaceholderEntry(tk.Entry):
+    def __init__(self, master=None, placeholder="", **kwargs):
+        super().__init__(master, **kwargs)
+        self.placeholder = placeholder
+        self.default_fg_color = self.cget("foreground")
+        self.placeholder_fg_color = "grey"
+        self.bind("<FocusIn>", self._on_focus_in)
+        self.bind("<FocusOut>", self._on_focus_out)
+        self.insert(0, self.placeholder)
+        self.config(foreground=self.placeholder_fg_color)
+
+    def _on_focus_in(self, event):
+        if self.get() == self.placeholder:
+            self.config(foreground=self.default_fg_color)
+            self.delete(0, tk.END)
+
+    def _on_focus_out(self, event):
+        if not self.get():
+            self.config(foreground=self.placeholder_fg_color)
+            self.insert(0, self.placeholder)
+
+
 
 class MKTask:
     def __init__(self):
@@ -93,6 +118,26 @@ class MKTask:
         window.minsize(250, 250)
         window.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+    def parse(self, input):
+        noauto = False
+        leave_code = False
+
+        txt = ""
+
+        if "$noauto" in str(input.get(1.0, tk.END)): 
+            noauto = True
+
+        if _ECHO_OFF == True and not noauto: txt += "\n@echo off\n"
+
+        txt += str(input.get(1.0, tk.END))
+
+        if _AUTO_PAUSE == True and not noauto: txt += "\npause\n"
+
+        txt = txt.replace("$noauto", "")
+        txt = txt.replace("$error", "echo An error has occured.\npause\nexit")
+
+        return txt
+
     def on_closing(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.window.destroy()
@@ -110,7 +155,9 @@ class MKTask:
     def run(self, input): # dont use
         self.out_text.delete(1.0, tk.END)
 
-        if _ECHO_OFF: txt = "\n@echo off\n"
+        txt = ""
+
+        if _ECHO_OFF: txt += "\n@echo off\n"
 
         txt += input.get(1.0, tk.END)
 
@@ -147,22 +194,9 @@ class MKTask:
     
     def runcmd(self, input):
         with open(self.scriptloc, "w") as f:
-            txt = ""
-            noauto = False
-
-            if "noauto" in str(input.get(1.0, tk.END)): 
-                noauto = True
-
-
-            if _ECHO_OFF == True and not noauto: txt += "\n@echo off\n"
-
-            txt += str(input.get(1.0, tk.END))
-
-            if _AUTO_PAUSE == True and not noauto: txt += "\npause\n"
-            txt = txt.replace("noauto", "")
+            txt = self.parse(input)
 
             f.write(txt)
-
 
         proc = Popen(
             f"explorer.exe {self.scriptloc}",
@@ -171,6 +205,7 @@ class MKTask:
             stderr=PIPE,
             shell=True
         )
+        print(self.scriptloc, os.getcwd())
 
         
 
@@ -194,6 +229,8 @@ class MKTask:
             filetypes=[("Batch files", "*.bat"), ("All files", "*.*")]
         )
 
+        self.currently_open = file_path
+
         if file_path:
             with open(file_path, 'r') as file:
                 content = file.read()
@@ -201,13 +238,16 @@ class MKTask:
             return content
         else: return 69420 # nice
 
-    def copy_from_file(self, input):
+    def copy_from_file(self, input, floc=None):
         file_data = self.open_file()
+
+        with open(os.path.abspath(floc), "r+") as f:
+            file_data = f.read()
 
         if not file_data == 69420:
             input.delete(1.0, tk.END)
             input.insert(1.0, file_data)
-    
+
     def update_status_bar(self, input):
         content = input.get(1.0, tk.END)
         wospaces = content.replace(" ", "")
@@ -263,20 +303,7 @@ class MKTask:
     def view_startups(self): os.system(f"explorer.exe {startup}")
 
     def save_file(self, input):
-        noauto = False
-
-        txt = ""
-
-        if "noauto" in str(input.get(1.0, tk.END)): 
-            noauto = True
-
-
-        if _ECHO_OFF == True and not noauto: txt += "\n@echo off\n"
-
-        txt += str(input.get(1.0, tk.END))
-
-        if _AUTO_PAUSE == True and not noauto: txt += "\npause\n"
-        txt = txt.replace("noauto", "")
+        txt = self.parse(input)
 
         file_path = filedialog.asksaveasfilename(
             defaultextension=".txt",
@@ -286,6 +313,47 @@ class MKTask:
         if file_path:
             with open(file_path, 'w') as file:
                 file.write(txt)
+
+    def save_proj(self, input):
+        with open(self.scriptloc, 'w') as f:
+            f.write(self.parse(input))
+    def get_name(self, input):
+        self.project_name = self._proj_name.get()
+        self._proj_name.configure(fg="#5b9c49")
+
+        if self.project_name == "":
+            self.scriptloc = "Scripts/Code.bat"
+            self.window.title("MKTask")
+        else:
+            project_dir = f".\\Scripts\\{self.project_name}"
+            
+            if not os.path.exists(project_dir):
+                os.makedirs(project_dir)
+                print(f"Created directory: {project_dir}")
+
+                        
+                self.scriptloc = f"{project_dir}\\Code.bat"
+                
+                with open(self.scriptloc, "w") as f:
+                    f.write("@echo off\n")
+                    f.write("REM Your script commands here\n")
+                    f.write("echo Hello, World!\n")
+                    f.close()
+                
+                self.save_proj(input)
+                self.window.title(f"MKTask - {self.project_name} - {os.path.abspath(self.scriptloc)}")
+
+            else:
+                self.scriptloc = f"{project_dir}\\Code.bat"
+                
+                self.save_proj(input)
+                self.window.title(f"MKTask - {self.project_name} - {os.path.abspath(self.scriptloc)}")
+
+    def get_name_color(self):
+        try:
+            if not self.project_name == self._proj_name.get():
+                self._proj_name.configure(fg="#bababa")
+        except: pass
 
     def Core(self):
         if not os.path.exists(startup): 
@@ -298,7 +366,7 @@ class MKTask:
         mainframe.pack(fill="x")
 
         _input = CodeView(mainframe,  bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
-        _input.insert(1.0, "rem Write, view, and run Batch scripts.\nrem To run, press Ctrl+R!\n\necho Hello, world!")
+        _input.insert(1.0, "rem\t\tWrite, view, and run Batch scripts.\nrem\t\tTo run, press Ctrl+R!\n\necho Hello, world!")
         _input.highlight_all()
 
         _input.pack(pady=5)
@@ -336,6 +404,9 @@ class MKTask:
         self._data_lines = tk.Label(_data, text="Thanks for using MkTask!", bg="#212126", fg="#bababa")
         self._data_lines.pack(anchor='w')
 
+        self._proj_name = PlaceholderEntry(_data, bg="#212126", fg="#bababa", placeholder="Project name", bd=1)
+        self._proj_name.pack(anchor='w', padx=3)
+
         self._output = tk.Frame(window, bg="#1f1f1f")
         self._output.pack(fill="both", expand=True)
 
@@ -353,13 +424,18 @@ class MKTask:
 
         scrollb_out.config(command=self.out_text.yview)
 
+        self._proj_name.bind("<KeyRelease>", lambda x: self.get_name_color())
+        self._proj_name.bind("<Return>", lambda x: self.get_name(_input))
+
+        _input.focus()
+
         _input.bind("<Return>", lambda x: self.auto_indent(input=_input))
         _input.bind('<KeyPress>', lambda x: self.update_status_bar(_input))
+        _input.bind('<KeyRelease>', lambda x: self.save_proj(_input))
         _input.bind("<Button-3>", self.show_context_menu)
 
         self.out_text.bind("<Button-3>", self.show_context_menu_out)
 
-        
         window.bind('<Alt-t>', lambda x: self.view_startups())
         window.bind('<Control-s>', lambda x: self.save_file(_input))
         window.bind('<Control-m>', lambda x: self.add_to_startup(_input))
