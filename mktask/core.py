@@ -184,7 +184,7 @@ class MKTask:
             f.write(txt)
 
         os.system(f"cd {os.getcwd()}")
-        
+
         proc = Popen(
             f"explorer.exe {self.scriptloc}",
             cwd=os.getcwd(),
@@ -194,7 +194,7 @@ class MKTask:
         )
         self.out_write("", clear=True)
 
-        self.out_write(f"Executing script > {self.scriptloc}\tDirectory > {os.getcwd()}", True)
+        self.out_write(f"Executing script > {self.scriptloc}\nDirectory > {os.getcwd()}", True)
 
         
 
