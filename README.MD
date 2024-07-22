@@ -5,7 +5,7 @@ and auto indentation. Make scripts run on startup with our tasking features!
 
 Built with Tkinter
 
-![alt text](./etc/look.png)
+![Preview](http://jansel.pages.dev/img/mktask/preview.png)
 
 # Manual
 
