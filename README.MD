@@ -26,6 +26,12 @@ Misc
 * **Clear all (CTRL+B)**
 
 *Note*: MkTask is a quick Batch editor and executor, and should not be used as a full on IDE. Almost ALL of the commands you'll ever use are Run, Make Task, and Open File.
+*Another note* MkTask automatically adds `@echo off` at the start of every script (not shown in the editor), and `pause` at the end.
+
+**Custom commands**
+We've implemented some custom Batch commands (place these commands anywhere inside your script **Must be compiled with MKTask**):
+* noauto (Disables auto echo off and auto pause at the end)
+* error  (Prints theres been an error)
 
 # Notes
 Right now, features like making projects, undo & redo, **are** developed, but disabled due to tons of bugs (Which I will be fixing). So for now, theres no undo and redo or projects.
