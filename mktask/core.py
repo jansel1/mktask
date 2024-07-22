@@ -183,6 +183,8 @@ class MKTask:
 
             f.write(txt)
 
+        os.system(f"cd {os.getcwd()}")
+        
         proc = Popen(
             f"explorer.exe {self.scriptloc}",
             cwd=os.getcwd(),
@@ -190,7 +192,9 @@ class MKTask:
             stderr=PIPE,
             shell=True
         )
-        print(self.scriptloc, os.getcwd())
+        self.out_write("", clear=True)
+
+        self.out_write(f"Executing script > {self.scriptloc}\tDirectory > {os.getcwd()}", True)
 
         
 
@@ -319,6 +323,12 @@ class MKTask:
          self.redo_stack.clear()
 
 
+    def out_write(self, text, clear=False):
+        if clear: self.out_text.delete(1.0, tk.END)
+
+        self.out_text.config(state="normal")
+        self.out_text.insert(1.0, text)
+        self.out_text.config(state="disabled")
 
 
     ## CORE ##################################################################################
@@ -337,7 +347,7 @@ class MKTask:
         self._input = _input = CodeView(mainframe,  bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
         _input = self._input
 
-        _input.insert(1.0, "rem\t\tWrite, view, and run Batch scripts.\nrem\t\tTo run, press Ctrl+R!\n\necho Hello, world!")
+        _input.insert(1.0, "rem\t\tWrite, view, and run Batch scripts.\nrem\t\tTo run, press Ctrl+R!\nrem\t\tWrite 'noauto' to disable auto echo-off and auto pause\n\necho Hello, world!")
         _input.highlight_all()
 
         _input.pack(pady=5)
@@ -396,10 +406,7 @@ class MKTask:
 
         _input.bind("<Return>", lambda x: self.auto_indent(input=_input))
         _input.bind('<KeyPress>', lambda x: self.update_status_bar(_input))
-        _input.bind('<KeyRelease>', lambda x: self.save_proj(_input))
         _input.bind("<Button-3>", self.show_context_menu)
-
-        self.out_text.insert(1.0, "No output yet...")
 
         self.out_text.bind("<Button-3>", self.show_context_menu_out)
 
