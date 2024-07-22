@@ -299,58 +299,6 @@ class MKTask:
             with open(file_path, 'w') as file:
                 file.write(txt)
 
-    def save_proj(self, input):
-        with open(self.scriptloc, 'w') as f:
-            f.write(self.parse(input))
-
-    def get_name(self, input):
-        self.project_name = self._proj_name.get()
-        self._proj_name.configure(fg="#5b9c49")
-
-        if self.project_name == "":
-            self.scriptloc = ".\\Scripts\\Code.bat"
-            self.save_proj(input)
-
-            self.window.title("MKTask")
-        else:
-            project_dir = f".\\Scripts\\{self.project_name}"
-            
-            if not os.path.exists(project_dir):
-                os.makedirs(project_dir)
-                print(f"Created directory: {project_dir}")
-
-                        
-                self.scriptloc = f"{project_dir}\\Code.bat"
-                
-                with open(self.scriptloc, "w") as f:
-                    f.write("@echo off\n")
-                    f.write("REM Your script commands here\n")
-                    f.write("echo Hello, World!\n")
-                    f.close()
-                
-                self.save_proj(input)
-                self.window.title(f"MKTask - {self.project_name} - {os.path.abspath(self.scriptloc)}")
-
-            else:
-                self.scriptloc = f"{project_dir}\\Code.bat"
-
-                self.save_proj(input)
-                self.window.title(f"MKTask - {self.project_name} - {os.path.abspath(self.scriptloc)}")
-
-                with open(self.scriptloc, 'w') as f:
-                    txt = f.read()
-
-                    self._input.delete(1.0, tk.END)
-                    self._input.insert(1.0, txt)
-
-                    self.undo_stack.append(self._input.get(1.0, tk.END))
-
-    def get_name_color(self):
-        try:
-            if not self.project_name == self._proj_name.get():
-                self._proj_name.configure(fg="#bababa")
-        except: pass
-
     def undo(self, event=None):
         if self.undo_stack:
             text = self.undo_stack.pop()
@@ -427,9 +375,6 @@ class MKTask:
         self._data_lines = tk.Label(_data, text="Thanks for using MkTask!", bg="#212126", fg="#bababa")
         self._data_lines.pack(anchor='w')
 
-        #self._proj_name = PlaceholderEntry(_data, bg="#212126", fg="#bababa", placeholder="Create or view other projects", bd=1, width=75)
-        #self._proj_name.pack(anchor='w', padx=3)
-
         self._output = tk.Frame(window, bg="#1f1f1f")
         self._output.pack(fill="both", expand=True)
 
@@ -446,9 +391,6 @@ class MKTask:
         self.out_text.configure(state="disabled")
 
         scrollb_out.config(command=self.out_text.yview)
-
-        #self._proj_name.bind("<KeyRelease>", lambda x: self.get_name_color())
-        #self._proj_name.bind("<Return>", lambda x: self.get_name(_input))
 
         _input.focus()
 
