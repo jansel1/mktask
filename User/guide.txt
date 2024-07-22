@@ -1,4 +1,0 @@
-Firstly, why are (auto_echo_off) and (auto_pause) a setting?
-
-    1. Auto echo off - to save time.
-    2. Auto pause - for viewing error messages.

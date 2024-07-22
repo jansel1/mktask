@@ -38,7 +38,7 @@ if not os.path.exists(".\\User\\cfg.json"):
     with open("./User/cfg.json", "w") as f: f.write("""
 {
     "auto_echo_off": true,
-    "auto_pause": true,
+    "auto_pause": true
 }
 """)
 
@@ -102,6 +102,8 @@ class MKTask:
 
         style = self.style
         window = self.window
+
+        #window.attributes("-fullscreen", True)
 
         self.can_make_task = True
 
@@ -357,6 +359,14 @@ class MKTask:
                 self.save_proj(input)
                 self.window.title(f"MKTask - {self.project_name} - {os.path.abspath(self.scriptloc)}")
 
+                with open(self.scriptloc, 'w') as f:
+                    txt = f.read()
+
+                    self._input.delete(1.0, tk.END)
+                    self._input.insert(1.0, txt)
+
+                    self.undo_stack.append(self._input.get(1.0, tk.END))
+
     def get_name_color(self):
         try:
             if not self.project_name == self._proj_name.get():
@@ -433,8 +443,8 @@ class MKTask:
         self._data_lines = tk.Label(_data, text="Thanks for using MkTask!", bg="#212126", fg="#bababa")
         self._data_lines.pack(anchor='w')
 
-        self._proj_name = PlaceholderEntry(_data, bg="#212126", fg="#bababa", placeholder="Project name", bd=1)
-        self._proj_name.pack(anchor='w', padx=3)
+        #self._proj_name = PlaceholderEntry(_data, bg="#212126", fg="#bababa", placeholder="Create or view other projects", bd=1, width=75)
+        #self._proj_name.pack(anchor='w', padx=3)
 
         self._output = tk.Frame(window, bg="#1f1f1f")
         self._output.pack(fill="both", expand=True)
@@ -453,22 +463,23 @@ class MKTask:
 
         scrollb_out.config(command=self.out_text.yview)
 
-        self._proj_name.bind("<KeyRelease>", lambda x: self.get_name_color())
-        self._proj_name.bind("<Return>", lambda x: self.get_name(_input))
+        #self._proj_name.bind("<KeyRelease>", lambda x: self.get_name_color())
+        #self._proj_name.bind("<Return>", lambda x: self.get_name(_input))
 
         _input.focus()
 
-    
         _input.bind("<Return>", lambda x: self.auto_indent(input=_input))
         _input.bind('<KeyPress>', lambda x: self.update_status_bar(_input))
         _input.bind('<KeyRelease>', lambda x: self.save_proj(_input))
         _input.bind("<Button-3>", self.show_context_menu)
 
+        self.out_text.insert(1.0, "No output yet...")
+
         self.out_text.bind("<Button-3>", self.show_context_menu_out)
 
-        window.bind('<Control-y>', self.redo)
-        window.bind('<Control-z>', self.undo)
-        window.bind('<Key>', self.timeline)
+        #window.bind('<Control-y>', self.redo)
+        #window.bind('<Control-z>', self.undo)
+        #window.bind('<Key>', self.timeline)
         window.bind('<Alt-t>', lambda x: self.view_startups())
         window.bind('<Control-s>', lambda x: self.save_file(_input))
         window.bind('<Control-m>', lambda x: self.add_to_startup(_input))
