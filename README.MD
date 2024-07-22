@@ -5,6 +5,8 @@ and auto indentation. Make scripts run on startup with our tasking features!
 
 Built with Tkinter
 
+![alt text](./etc/look.png)
+
 # Manual
 
 Once you've loaded MkTask, you will see two sections - the *Coding* section and the *Output* section. The output section
