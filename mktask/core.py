@@ -20,6 +20,8 @@ from chlorophyll import CodeView
 import syntax
 import pyuac, sys
 
+from customentry import *
+
 _ECHO_OFF = None
 _AUTO_PAUSE = None
 
@@ -59,30 +61,6 @@ with open("./User/cfg.json", 'r') as cfg:
 
     if (data_j["auto_echo_off"] == True): _ECHO_OFF = True
     if (data_j["auto_pause"] == True): _AUTO_PAUSE = True
-
-
-
-class PlaceholderEntry(tk.Entry):
-    def __init__(self, master=None, placeholder="", **kwargs):
-        super().__init__(master, **kwargs)
-        self.placeholder = placeholder
-        self.default_fg_color = self.cget("foreground")
-        self.placeholder_fg_color = "grey"
-        self.bind("<FocusIn>", self._on_focus_in)
-        self.bind("<FocusOut>", self._on_focus_out)
-        self.insert(0, self.placeholder)
-        self.config(foreground=self.placeholder_fg_color)
-
-    def _on_focus_in(self, event):
-        if self.get() == self.placeholder:
-            self.config(foreground=self.default_fg_color)
-            self.delete(0, tk.END)
-
-    def _on_focus_out(self, event):
-        if not self.get():
-            self.config(foreground=self.placeholder_fg_color)
-            self.insert(0, self.placeholder)
-
 
 
 class MKTask:
@@ -392,6 +370,12 @@ class MKTask:
          self.undo_stack.append(self._input.get(1.0, tk.END))
          self.redo_stack.clear()
 
+
+
+
+    ## CORE ##################################################################################
+
+
     def Core(self):
         if not os.path.exists(startup): 
             self.can_make_task = False
@@ -480,6 +464,7 @@ class MKTask:
         #window.bind('<Control-y>', self.redo)
         #window.bind('<Control-z>', self.undo)
         #window.bind('<Key>', self.timeline)
+        
         window.bind('<Alt-t>', lambda x: self.view_startups())
         window.bind('<Control-s>', lambda x: self.save_file(_input))
         window.bind('<Control-m>', lambda x: self.add_to_startup(_input))

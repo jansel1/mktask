@@ -1,9 +1,8 @@
 # MkTask
  
-MkTask (short for MakeTask) is a lightweight code editor for Batch. Execute scripts on the go, with syntax highlighting
-and auto indentation. Make scripts run on startup with our tasking features!
+MkTask (short for MakeTask) (or TaskMk) is a lightweight code editor for Batch. Execute scripts on the go, with syntax highlighting and auto indentation, and make scripts run on startup with our tasking features!
 
-Built with Tkinter
+Built with Tkinter, Python.
 
 ![Preview](http://jansel.pages.dev/img/mktask/preview.png)
 
@@ -45,5 +44,14 @@ Another note: If you decide to compile MkTask by yourself, make sure to remove u
 * Qt5
 * PySide6
 * SetupTools
+* Numpy (& numpylibs)
 
-ALSO! Make sure to drag in the `chlorophyll` folder inside that `_internal` folder or else the program won't start!
+All of these libraries are **not** used. These are somehow included by default in PyInstaller.
+This will make the program faster and lighter.
+
+ALSO! Make sure to drag in the `chlorophyll` (located here, on this github) folder inside that `_internal` folder or else the program won't start!
+
+# Visit my page
+
+Visit my page (https://jansel.pages.dev) to view my other projects. Soon I'll be hosting all binaries there, including
+a standalone binary.
