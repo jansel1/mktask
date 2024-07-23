@@ -21,6 +21,14 @@ To enter, right click on the coding section. Upon clicking, you will be greeted 
 * **Add to startup (CTRL+M)** Adds current script to startup
 * **View startup tasks (ALT+T)** Shows all startups tasks
 
+**Building exe**
+To build an EXE, right click on your code to bring up the context menu;
+* Click on 'File'
+* Then click 'Build EXE'
+
+Once you've done that, a window will open with your executable. Make sure you copy that executable and put it somewhere else
+because if you build it again, it will overrite that EXE!
+
 Misc
 
 * **Copy all (CTRL+X)**
