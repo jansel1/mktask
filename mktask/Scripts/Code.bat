@@ -4,8 +4,6 @@ rem		Write, view, and run Batch scripts.
 rem		To run, press Ctrl+R!
 rem		Write 'noauto' to disable auto echo-off and auto pause
 
-echo Hello, world!
-mkdir helloworld
-cd
+echo Hello, world! 5
 
 pause

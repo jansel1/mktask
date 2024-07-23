@@ -4,7 +4,7 @@ from tkinter import filedialog
 from tkinter import messagebox, simpledialog
 
 from subprocess import Popen, PIPE
-import os, random
+import os, random, subprocess
 
 import pygments.lexer
 import pygments.lexers
@@ -29,9 +29,10 @@ json_data = None
 current_dir = None
 
 current_dir = os.chdir(os.getcwd())
-startup = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
+startup = r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
 
 if not os.path.exists(".\\Scripts"): os.mkdir("Scripts")
+
 if not os.path.exists(".\\Scripts\\Code.bat"): 
     with open("./Scripts/Code.bat", "w") as f: f.write("")
 
@@ -48,10 +49,9 @@ def is_running_as_admin():
     return pyuac.isUserAdmin()
 
 def run_as_admin():
-    # Re-run the script with admin privileges if not already
     if not is_running_as_admin():
         pyuac.runAsAdmin()
-        sys.exit()  # Ensure the current process exits
+        sys.exit()
 
 with open("./User/cfg.json", 'r') as cfg:
     data = cfg.read()
@@ -330,7 +330,18 @@ class MKTask:
         self.out_text.insert(1.0, text)
         self.out_text.config(state="disabled")
 
+    def convert_exe(self):
+        with open(self.scriptloc, "w") as f:
+            txt = self.parse(self._input)
 
+            f.write(txt)
+
+        os.chdir(".\\Scripts")
+        subprocess.run(["..\\MkExe.bat", "Code.bat"])
+        os.chdir("..\\")
+
+        os.system(f"explorer.exe .\\Scripts\\")
+        
     ## CORE ##################################################################################
 
 
@@ -370,6 +381,7 @@ class MKTask:
         self.context_files.add_command(label="Open from file (CTRL+O)", command=lambda: self.copy_from_file(_input))
         self.context_files.add_command(label="Open script location (CTRL+F)", command=lambda: os.system("explorer .\\Scripts\\"))
         self.context_files.add_command(label="Save file (CTRL+S)", command=lambda: self.save_file(_input))
+        self.context_files.add_command(label="Build EXE", command=lambda: self.convert_exe())
 
         self.context_tasks.add_command(label="Add to startup (CTRL+M)", command=lambda: self.add_to_startup(_input))
         self.context_tasks.add_command(label="View startups (ALT+T)", command=self.view_startups)
