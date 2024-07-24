@@ -29,9 +29,11 @@ To build an EXE, right click on your code to bring up the context menu;
 Once you've done that, a window will open with your executable. Make sure you copy that executable and put it somewhere else
 because if you build it again, it will overrite that EXE!
 
-*Important* Normally if you run these executables, their current directory will be something like "C:\Users\user\AppData\Local\Temp\IXP001.TMP", so in your script you will have to manually change the directory.
+*Important* 
+Normally if you run these executables, their current directory will be something like "C:\Users\user\AppData\Local\Temp\IXP001.TMP", so in your script you will have to manually change the directory.
 I will be working on a feature that automatically sets the directory!
 
+*
 Misc
 
 * **Copy all (CTRL+X)**
@@ -42,11 +44,11 @@ Misc
 
 **Custom commands**
 We've implemented some custom Batch commands (place these commands anywhere inside your script **Must be compiled with MKTask**):
-* noauto (Disables auto echo off and auto pause at the end)
-* error  (Prints theres been an error)
+* $noauto (Disables auto echo off and auto pause at the end)
+* $error  (Prints theres been an error)
 
 # Notes
-Right now, features like making projects, undo & redo, **are** developed, but disabled due to tons of bugs (Which I will be fixing). So for now, theres no undo and redo or projects.
+Right now, features like undo & redo, **are** developed, but disabled due to tons of bugs (Which I will be fixing).
 
 MkTask is made using Python 3.11, and compiled with PyInstaller. That means this program is heavy and slow, which sadly means all I can do is just add optimizations. **Feel free to help out and discuss!**
 

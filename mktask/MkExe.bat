@@ -1,26 +1,26 @@
-;@echo off
-;echo(
+@echo off
+echo(
 
-;set "target.exe=%__cd__%%~n1.exe"
-;set "batch_file=%~f1"
-;set "bat_name=%~nx1"
-;set "bat_dir=%~dp1"
-;Set "sed=%temp%\MKTASK_EXE_BUILD_TEMPLATE.sed"
-;copy /y "%~f0" "%sed%" >nul
-;(
-    ;(echo()
-    ;(echo(AppLaunched=cmd /c "%bat_name%")
-    ;(echo(TargetName=%target.exe%)
-    ;(echo(FILE0="%bat_name%")
-    ;(echo([SourceFiles])
-    ;(echo(SourceFiles0=%bat_dir%)
-    ;(echo([SourceFiles0])
-    ;(echo(%%FILE0%%=)
-;)>>"%sed%"
+set "target.exe=%__cd__%%~n1.exe"
+set "batch_file=%~f1"
+set "bat_name=%~nx1"
+set "bat_dir=%~dp1"
+Set "sed=%temp%\MKTASK_EXE_BUILD_TEMPLATE.sed"
+copy /y "%~f0" "%sed%" >nul
+(
+    (echo()
+    (echo(AppLaunched=cmd /c "%bat_name%")
+    (echo(TargetName=%target.exe%)
+    (echo(FILE0="%bat_name%")
+    (echo([SourceFiles])
+    (echo(SourceFiles0=%bat_dir%)
+    (echo([SourceFiles0])
+    (echo(%%FILE0%%=)
+)>>"%sed%"
 
-;iexpress /n /q /m %sed%
-;del /q /f "%sed%"
-;exit /b 0
+iexpress /n /q /m %sed%
+del /q /f "%sed%"
+exit /b 0
 
 [Version]
 Class=IEXPRESS

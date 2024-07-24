@@ -31,6 +31,8 @@ current_dir = None
 current_dir = os.chdir(os.getcwd())
 startup = r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
 
+sys.dont_write_bytecode = True
+
 if not os.path.exists(".\\Scripts"): os.mkdir("Scripts")
 
 if not os.path.exists(".\\Scripts\\Code.bat"): 
@@ -213,10 +215,12 @@ class MKTask:
     def show_context_menu_out(self, event):
         self.context_menu_out.tk_popup(event.x_root, event.y_root)
 
-    def open_file(self):
+    def open_file(self, cd=False):
         file_path = filedialog.askopenfilename(
             filetypes=[("Batch files", "*.bat"), ("All files", "*.*")]
         )
+
+        if (cd): self.scriptloc = file_path
 
         self.currently_open = file_path
 
@@ -228,15 +232,13 @@ class MKTask:
         else: return 69420 # nice
 
     def copy_from_file(self, input, floc=None):
-        file_data = self.open_file()
-
-        with open(os.path.abspath(floc), "r+") as f:
-            file_data = f.read()
+        file_data = self.open_file(cd=True)
 
         if not file_data == 69420:
             input.delete(1.0, tk.END)
             input.insert(1.0, file_data)
-
+        else: self.out_write("Could not open file")
+        
     def update_status_bar(self, input):
         content = input.get(1.0, tk.END)
         wospaces = content.replace(" ", "")
@@ -336,9 +338,18 @@ class MKTask:
 
             f.write(txt)
 
-        os.chdir(".\\Scripts")
-        subprocess.run(["..\\MkExe.bat", "Code.bat"])
-        os.chdir("..\\")
+        try:
+            try:
+                os.chdir(".\\Scripts")
+                subprocess.run(["..\\MkExe.bat", "Code.bat"])
+                os.chdir("..\\")
+            except:
+                os.chdir(".\\Scripts")
+                subprocess.run([".\\MkExe.bat", "Code.bat"])
+                os.chdir("..\\")
+        except:
+            self.out_write("Cannot build EXE.")
+            pass
 
         os.system(f"explorer.exe .\\Scripts\\")
         
