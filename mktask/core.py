@@ -46,6 +46,8 @@ if not os.path.exists(".\\User\\cfg.json"):
     "auto_pause": true
 }
 """)
+if not os.path.exists(".\\User\\terminal.cmd"): 
+    with open("./User/terminal.cmd", "w") as f: f.write("")
 
 def is_running_as_admin():
     return pyuac.isUserAdmin()
@@ -79,6 +81,8 @@ class MKTask:
         self.timeline_current_index = 0
 
         self.style.theme_use('classic')
+
+        self.scroll_int = 10
 
         style = self.style
         window = self.window
@@ -139,7 +143,7 @@ class MKTask:
         return txt
 
     def on_closing(self):
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        if messagebox.askyesno("Quit", "Do you want to quit?"):
             self.window.destroy()
             quit()
             
@@ -233,7 +237,7 @@ class MKTask:
         )
 
         if cd: self.scriptloc = file_path
-
+                                    
         self.currently_open = file_path
 
         if not os.path.exists(file_path):
@@ -379,8 +383,6 @@ class MKTask:
         if enabled:
             self.context_menu.add_command(label="Modify source (DevKit)", command=self.exec_code)
 
-    ## CORE ##################################################################################
-
     def save(self):
         with open(self.scriptloc, "w") as f:
             txt = self.parse(self._input)
@@ -402,7 +404,37 @@ class MKTask:
         else: self.out_write("Could not open file")
 
         self._input.highlight_all()
+    
+    def exec_cmd(self, event=None):
+        cmd = str(self._input.get(1.0))
 
+        with open(".\\User\\terminal.cmd", "w") as f:
+            f.write(f"\ncd {os.path.abspath(self.scriptloc)}\n" + cmd + "\npause\n")
+        
+
+        Popen("explorer.exe .\\User\\terminal.cmd")
+
+    def scroll_in(self):
+        self.scroll_int += 1
+        self._input.configure(font=("Lucida Console", self.scroll_int))
+
+    def scroll_out(self):
+        self.scroll_int -= 1
+        self._input.configure(font=("Lucida Console", self.scroll_int))
+
+    def mousewheel(self, event):
+        if event.state & 0x0004:
+            if event.delta > 0:
+                if self.scroll_int == 10: 
+                    self._input.configure(bd=1)
+                    time.sleep(0.5)
+                    self._input.configure(bd=0)
+
+                self.scroll_in()
+            else:
+                self.scroll_out()
+
+    ## CORE ##################################################################################
 
     def Core(self):
         if not os.path.exists(startup): 
@@ -414,10 +446,10 @@ class MKTask:
         mainframe = tk.Frame(window, bg="#282a36")
         mainframe.pack(fill="x")
 
-        self._input = _input = CodeView(mainframe,  bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
+        self._input = _input = CodeView(mainframe, bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
         _input = self._input
 
-        _input.insert(1.0, "rem\t\tWrite, view, and run Batch scripts.\nrem\t\tTo run, press Ctrl+R!\nrem\t\tWrite 'noauto' to disable auto echo-off and auto pause\n\necho Hello, world!")
+        _input.insert(1.0, "rem\t\tWrite, view, and run Batch scripts.\nrem\t\tTo run, press Ctrl+R!\nrem\t\tWrite '$noauto' to disable auto echo-off and auto pause\n\necho Hello, world!")
         _input.highlight_all()
 
         _input.pack(pady=5)
@@ -462,7 +494,12 @@ class MKTask:
         self._data_lines = tk.Label(_data, text="Thanks for using MkTask!", bg="#212126", fg="#bababa")
         self._data_lines.pack(anchor='w')
 
-        self._output = tk.Frame(window, bg="#1f1f1f")
+        self.update_status_bar(_input)
+
+        self._command_bar = PlaceholderEntry(_data, placeholder=f"Write and execute commands (CWD is current Codespace)", bg="#3c3c45", fg="#bdbdbd")
+        self._command_bar.pack(fill="x")
+
+        self._output = tk.Frame(window)
         self._output.pack(fill="both", expand=True)
 
         self.context_menu_out = tk.Menu(window, tearoff=0, borderwidth=0, relief='flat', activebackground="black")
@@ -476,11 +513,16 @@ class MKTask:
         self.out_text.pack(fill="both", expand=True)
 
         self.out_text.configure(state="disabled")
-
+    
         scrollb_out.config(command=self.out_text.yview)
+
+        try:
+            self._command_bar.bind("<Return>", self.exec_cmd)
+        except Exception as e: print(e)
 
         _input.focus()
 
+        _input.bind("<MouseWheel>", self.mousewheel)
         _input.bind("<Return>", lambda x: self.auto_indent(input=_input))
         _input.bind('<KeyPress>', lambda x: self.update_status_bar(_input))
         _input.bind("<Button-3>", self.show_context_menu)
@@ -491,6 +533,8 @@ class MKTask:
         #window.bind('<Control-z>', self.undo)
         #window.bind('<Key>', self.timeline)
 
+        
+        window.bind('<Control-e>', lambda x: self._command_bar.focus())
         window.bind('<Alt-s>', lambda x: self.save())
         window.bind('<Alt-b>', lambda x: self.convert_exe())
         window.bind('<Alt-t>', lambda x: self.view_startups())
