@@ -109,16 +109,27 @@ class MKTask:
         noauto = False
         leave_code = False
 
+        echo_off_found = False
+        pause_found = False
+
+        lines = list(input.split("\n"))
+
+        for line_echo in lines:
+            if line_echo == "@echo off" and not echo_off_found: echo_off_found = True; break
+        
+        for line_pause in lines.reverse():
+            if line_pause == "pause" and not pause_found: pause_found = True; break
+
         txt = ""
 
         if "$noauto" in str(input.get(1.0, tk.END)): 
             noauto = True
 
-        if _ECHO_OFF == True and not noauto: txt += "\n@echo off\n"
+        if _ECHO_OFF == True and not noauto and not echo_off_found: txt += "\n@echo off\n"
 
         txt += str(input.get(1.0, tk.END))
 
-        if _AUTO_PAUSE == True and not noauto: txt += "\npause\n"
+        if _AUTO_PAUSE == True and not noauto and not pause_found: txt += "\npause\n"
 
         txt = txt.replace("$noauto", "")
         txt = txt.replace("$error", "echo An error has occured.\npause\nexit")
@@ -238,7 +249,7 @@ class MKTask:
             input.delete(1.0, tk.END)
             input.insert(1.0, file_data)
         else: self.out_write("Could not open file")
-        
+
     def update_status_bar(self, input):
         content = input.get(1.0, tk.END)
         wospaces = content.replace(" ", "")
@@ -355,6 +366,10 @@ class MKTask:
         
     ## CORE ##################################################################################
 
+    def save(self):
+        with open(self.scriptloc, "w") as f:
+            txt = self.parse(self._input)
+            f.write(txt)
 
     def Core(self):
         if not os.path.exists(startup): 
@@ -391,8 +406,8 @@ class MKTask:
 
         self.context_files.add_command(label="Open from file (CTRL+O)", command=lambda: self.copy_from_file(_input))
         self.context_files.add_command(label="Open script location (CTRL+F)", command=lambda: os.system("explorer .\\Scripts\\"))
-        self.context_files.add_command(label="Save file (CTRL+S)", command=lambda: self.save_file(_input))
-        self.context_files.add_command(label="Build EXE", command=lambda: self.convert_exe())
+        self.context_files.add_command(label="Save file as ... (CTRL+S)", command=lambda: self.save_file(_input))
+        self.context_files.add_command(label="Build EXE (ALT+B)", command=lambda: self.convert_exe())
 
         self.context_tasks.add_command(label="Add to startup (CTRL+M)", command=lambda: self.add_to_startup(_input))
         self.context_tasks.add_command(label="View startups (ALT+T)", command=self.view_startups)
@@ -436,7 +451,9 @@ class MKTask:
         #window.bind('<Control-y>', self.redo)
         #window.bind('<Control-z>', self.undo)
         #window.bind('<Key>', self.timeline)
-        
+
+        window.bind('<Alt-s>', lambda x: self.save())
+        window.bind('<Alt-b>', lambda x: self.convert_exe())
         window.bind('<Alt-t>', lambda x: self.view_startups())
         window.bind('<Control-s>', lambda x: self.save_file(_input))
         window.bind('<Control-m>', lambda x: self.add_to_startup(_input))
