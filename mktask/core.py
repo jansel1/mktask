@@ -112,7 +112,7 @@ class MKTask:
         echo_off_found = False
         pause_found = False
 
-        lines = list(input.split("\n"))
+        lines = list(str(input.get(1.0, tk.END)).split("\n"))
 
         for line_echo in lines:
             if line_echo == "@echo off" and not echo_off_found: echo_off_found = True; break
