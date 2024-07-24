@@ -106,6 +106,8 @@ class MKTask:
         window.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def parse(self, input):
+        input = self._input
+
         noauto = False
         leave_code = False
 
@@ -117,7 +119,7 @@ class MKTask:
         for line_echo in lines:
             if line_echo == "@echo off" and not echo_off_found: echo_off_found = True; break
         
-        for line_pause in lines.reverse():
+        for line_pause in reversed(lines):
             if line_pause == "pause" and not pause_found: pause_found = True; break
 
         txt = ""
@@ -199,15 +201,14 @@ class MKTask:
         os.system(f"cd {os.getcwd()}")
 
         proc = Popen(
-            f"explorer.exe {self.scriptloc}",
+            f"explorer.exe {os.path.abspath(self.scriptloc)}",
             cwd=os.getcwd(),
             stdout=PIPE,
             stderr=PIPE,
             shell=True
         )
-        self.out_write("", clear=True)
 
-        self.out_write(f"Executing script > {self.scriptloc}\nDirectory > {os.getcwd()}", True)
+        print(self.scriptloc)
 
         
 
@@ -231,7 +232,7 @@ class MKTask:
             filetypes=[("Batch files", "*.bat"), ("All files", "*.*")]
         )
 
-        if (cd): self.scriptloc = file_path
+        if cd: self.scriptloc = file_path
 
         self.currently_open = file_path
 
@@ -371,6 +372,20 @@ class MKTask:
             txt = self.parse(self._input)
             f.write(txt)
 
+    def return_(self):
+        self.scriptloc = ".\\Scripts\\Code.bat"
+        
+        file_data = ""
+
+        with open(self.scriptloc, "r+") as f:
+            file_data = f.read()
+
+        if not file_data == 69420:
+            self._input.delete(1.0, tk.END)
+            self._input.insert(1.0, file_data)
+
+        else: self.out_write("Could not open file")
+
     def Core(self):
         if not os.path.exists(startup): 
             self.can_make_task = False
@@ -396,6 +411,9 @@ class MKTask:
         self.context_files = tk.Menu(self.context_menu, tearoff=0)
         self.context_tasks = tk.Menu(self.context_menu, tearoff=0)
 
+        
+        self.context_menu.add_command(label="Return to default codespace", command=self.return_)
+
         self.context_runs.add_command(label="Run (CTRL+R)", command=lambda: self.runcmd(_input))
         self.context_runs.add_command(label="Run in MkTask (CTRL+H)", command=lambda: self.run(_input))
         self.context_menu.add_cascade(label="Run", menu=self.context_runs)
@@ -407,6 +425,7 @@ class MKTask:
         self.context_files.add_command(label="Open from file (CTRL+O)", command=lambda: self.copy_from_file(_input))
         self.context_files.add_command(label="Open script location (CTRL+F)", command=lambda: os.system("explorer .\\Scripts\\"))
         self.context_files.add_command(label="Save file as ... (CTRL+S)", command=lambda: self.save_file(_input))
+        self.context_files.add_command(label="Save (ALT+S)", command=lambda: self.save())
         self.context_files.add_command(label="Build EXE (ALT+B)", command=lambda: self.convert_exe())
 
         self.context_tasks.add_command(label="Add to startup (CTRL+M)", command=lambda: self.add_to_startup(_input))

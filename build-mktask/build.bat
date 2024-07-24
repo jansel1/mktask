@@ -1,5 +1,7 @@
 
 @echo off
+
+@echo off
 REM 		MADE FOR BUILDING MKTASK
 REM		FACILITATES IT
 REM 		WRITTEN WITH MKTASK : )
@@ -15,7 +17,7 @@ xcopy "..\mktask\MkTask.ico" ".\dist\core"
 xcopy "..\mktask\MkExe.bat" ".\dist\core"
 
 cls
-echo Done copying files, deleting useless libraries
+echo Done copying files, deleting useless libraries.
 cd .\dist\core
 
 del ".\_internal\numpy"
@@ -24,3 +26,4 @@ del ".\_internal\PIL"
 del ".\_internal\PyQt5"
 
 pause
+

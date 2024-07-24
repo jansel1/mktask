@@ -125,7 +125,8 @@ class BatchLexer(RegexLexer):
                     "$error",        # Custom provides exit codes (1, 0)
                     "python",
                     "pip",
-                    "python3"
+                    "python3",
+                    "pyinstaller",
                 ),
                    suffix=_keyword_terminator), Keyword, f'follow{suffix}'),
             (rf'(call)({_space}?)(:)',
