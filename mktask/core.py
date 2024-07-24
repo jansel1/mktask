@@ -214,7 +214,7 @@ class MKTask:
 
     def clear(self, input): input.delete(1.0, tk.END)
 
-    def clearc(self):  # to fucking work on
+    def clearc(self):
         self.out_text.configure(state="normal")
         self.out_text.delete(1.0, tk.END)
         self.out_text.configure(state="disabled")
@@ -229,17 +229,22 @@ class MKTask:
 
     def open_file(self, cd=False):
         file_path = filedialog.askopenfilename(
-            filetypes=[("Batch files", "*.bat"), ("All files", "*.*")]
+            filetypes=[("Batch files", "*.bat"), ("Command files", "*.cmd"), ("All files", "*.*")]
         )
 
         if cd: self.scriptloc = file_path
 
         self.currently_open = file_path
 
+        if not os.path.exists(file_path):
+            self.error("File does not exist")
+
         if file_path:
             with open(file_path, 'r') as file:
                 content = file.read()
             
+            self.window.title(f"MKTask - {file_path}")
+
             return content
         else: return 69420 # nice
 
@@ -364,7 +369,16 @@ class MKTask:
             pass
 
         os.system(f"explorer.exe .\\Scripts\\")
-        
+    
+    def exec_code(self):
+        msg = self.msg_prompt("Modify source in Python", "DevKit")
+
+        eval(msg)
+
+    def devkit(self, enabled=True):
+        if enabled:
+            self.context_menu.add_command(label="Modify source (DevKit)", command=self.exec_code)
+
     ## CORE ##################################################################################
 
     def save(self):
@@ -384,7 +398,11 @@ class MKTask:
             self._input.delete(1.0, tk.END)
             self._input.insert(1.0, file_data)
 
+            self.window.title("MKTask")
         else: self.out_write("Could not open file")
+
+        self._input.highlight_all()
+
 
     def Core(self):
         if not os.path.exists(startup): 
@@ -405,6 +423,8 @@ class MKTask:
         _input.pack(pady=5)
 
         self.context_menu = tk.Menu(window, tearoff=0, borderwidth=0, relief='flat', activebackground="black")
+        
+        self.devkit(False) # Toggle devkit on and off
         
         self.context_runs = tk.Menu(self.context_menu, tearoff=0)
         self.context_actions = tk.Menu(self.context_menu, tearoff=0)
@@ -486,4 +506,5 @@ class MKTask:
         window.mainloop()
 
 root = MKTask()
+
 main = root.Core()
