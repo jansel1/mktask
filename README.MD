@@ -20,14 +20,18 @@ To enter, right click on the coding section. Upon clicking, you will be greeted 
 * **Open script location (CTRL+F)** Opens the directory in which the default code is stored.
 * **Add to startup (CTRL+M)** Adds current script to startup
 * **View startup tasks (ALT+T)** Shows all startups tasks
+* **Save file as (CTRL+S)** Saves file as another
+* **Save (ALT+S)** Saves file to current codespace (learn more below)
+* **Build EXE (ALT+B)** Builds an EXE (learn more below)
+
+**Code spaces**
+"Codespace" is our term for the current file you have open. To open a new code space, select (Open file). To view where your codespace is located, select (Open script location).
+
+To return to the default codespace, just open the context menu and press
 
 **Building exe**
-To build an EXE, right click on your code to bring up the context menu;
-* Click on 'File'
-* Then click 'Build EXE'
 
-Once you've done that, a window will open with your executable. Make sure you copy that executable and put it somewhere else
-because if you build it again, it will overrite that EXE!
+Once you've built and exe, a window will open with your executable. Make sure you copy that executable and put it somewhere else because if you build it again, it will overrite that EXE!
 
 *Important* 
 Normally if you run these executables, their current directory will be something like "C:\Users\user\AppData\Local\Temp\IXP001.TMP", so in your script you will have to manually change the directory.
