@@ -424,14 +424,11 @@ class MKTask:
 
     def mousewheel(self, event):
         if event.state & 0x0004:
-            if event.delta > 0:
-                if self.scroll_int == 10: 
-                    self._input.configure(bd=1)
-                    time.sleep(0.5)
-                    self._input.configure(bd=0)
-
+            if event.delta > 0 and not self.scroll_int > 35:
+                self.window.title(f"MKTask - ({self.scroll_int+1})")
                 self.scroll_in()
             else:
+                self.window.title(f"MKTask - ({self.scroll_int+1})")
                 self.scroll_out()
 
     ## CORE ##################################################################################
@@ -546,6 +543,8 @@ class MKTask:
         window.bind('<Alt-r>', lambda x: self.run(_input))
         window.bind('<Control-r>', lambda x: self.runcmd(_input))
         window.bind('<Control-x>', lambda x: self.copy(_input))
+
+        self.window.title(f"MKTask - ({self.scroll_int})")
 
         window.mainloop()
 
