@@ -1,6 +1,7 @@
 # MkTask
- 
-MkTask (short for MakeTask) (or TaskMk) is a lightweight code editor for Batch. Execute scripts on the go, with syntax highlighting and auto indentation, and make scripts run on startup with our tasking features!
+<img width="150" height="150" align="left" style="float: left; margin: 0 10px 0 0;" alt="MS-DOS logo" src="./etc/MkTask.png">   
+
+MkTask is a lightweight code editor for Batch. Execute scripts on the go, with syntax highlighting and make scripts run on startup with our tasking features!
 
 Built with Tkinter, Python.
 

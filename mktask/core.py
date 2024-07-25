@@ -424,7 +424,7 @@ class MKTask:
 
     def mousewheel(self, event):
         if event.state & 0x0004:
-            if event.delta > 0 and not self.scroll_int > 35:
+            if event.delta > 0 and not self.scroll_int >= 35:
                 self.window.title(f"MKTask - ({self.scroll_int+1})")
                 self.scroll_in()
             else:
@@ -442,9 +442,15 @@ class MKTask:
 
         mainframe = tk.Frame(window, bg="#282a36")
         mainframe.pack(fill="x")
-
-        self._input = _input = CodeView(mainframe, bg="#1f1f1f", fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
+        
+        self._input = _input = CodeView(mainframe, fg="#ffffff", height=40, lexer=syntax.BatchLexer, color_scheme="dracula", font=("Lucida Console", 10))
         _input = self._input
+        
+        try:
+            self.style.configure("Vertical.TScrollbar", gripcount=0,
+                    background="#A0A0A0", darkcolor="#707070", lightcolor="#C0C0C0",
+                    troughcolor="#E0E0E0", bordercolor="#D0D0D0", arrowcolor="#404040")
+        except Exception as e :print(e)
 
         _input.insert(1.0, "rem\t\tWrite, view, and run Batch scripts.\nrem\t\tTo run, press Ctrl+R!\nrem\t\tWrite '$noauto' to disable auto echo-off and auto pause\n\necho Hello, world!")
         _input.highlight_all()
